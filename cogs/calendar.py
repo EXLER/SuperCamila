@@ -54,7 +54,25 @@ class Calendar(commands.Cog):
 
     @commands.command()
     async def allscheduled(self, ctx):
-        pass
+        """Display all scheduled events in the database"""
+        async with self.bot.db_holder.db.cursor() as cur:
+            try:
+                await cur.execute(f"SELECT * FROM events")
+                events = await cur.fetchall()
+                if events:
+                    msg = "📅 Currently scheduled events:\n"
+                    for event in events:
+                        creator = self.bot.get_user(event[0])
+                        msg += f"`{event[1]}` for group `{event[3]}` on `{event[2]}`, created by: {creator}\n"
+                else:
+                    msg = "There are no currently scheduled events."
+
+                await ctx.send(msg)
+            except aiosqlite3.IntegrityError as e:
+                log.error(f"Database error on `schedule` command: {e}")
+                await ctx.send(
+                    "Database error occured while using the `schedule` command."
+                )
 
     @commands.command()
     async def today(self, ctx):
