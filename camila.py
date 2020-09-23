@@ -6,13 +6,23 @@ from datetime import datetime
 from subprocess import check_output, CalledProcessError
 from traceback import format_exc
 
-from dotenv import load_dotenv
-import discord
-from discord.ext import commands
+try:
+    import discord
+    from discord.ext import commands
+except ImportError:
+    print(
+        "Missing `discordpy` dependency. Did you install requirements with `pip install -r requirements.txt`?"
+    )
+    exit(0)
 
 from utils import log, database
 
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    print("Missing `dotenv` dependency. Skipping using normal environment variables...")
 
 cogs = []
 for file in os.listdir("cogs"):
