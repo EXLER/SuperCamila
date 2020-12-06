@@ -194,21 +194,12 @@ class VoiceState:
         self.next = asyncio.Event()
         self.songs = SongQueue()
 
-        self._loop = False
         self._volume = 0.5
 
         self.audio_player = bot.loop.create_task(self.audio_player_task())
 
     def __del__(self):
         self.audio_player.cancel()
-
-    @property
-    def loop(self):
-        return self._loop
-
-    @loop.setter
-    def loop(self, value: bool):
-        self._loop = value
 
     @property
     def volume(self):
@@ -226,15 +217,14 @@ class VoiceState:
         while True:
             self.next.clear()
 
-            if not self.loop:
-                # Try to get the next song within 3 minutes
-                # If no song will be added to the queue in time, the player will disconnect
-                try:
-                    async with timeout(180):
-                        self.current = await self.songs.get()
-                except asyncio.TimeoutError:
-                    self.bot.loop.create_task(self.stop())
-                    return
+            # Try to get the next song within 3 minutes
+            # If no song will be added to the queue in time, the player will disconnect
+            try:
+                async with timeout(180):
+                    self.current = await self.songs.get()
+            except asyncio.TimeoutError:
+                self.bot.loop.create_task(self.stop())
+                return
 
             self.current.source.volume = self._volume
             self.voice.play(self.current.source, after=self.play_next_song)
@@ -383,17 +373,6 @@ class Music(commands.Cog):
             return await ctx.send("Kolejka jest pusta.")
 
         ctx.voice_state.songs.remove(index - 1)
-        await ctx.message.add_reaction("✅")
-
-    @commands.command()
-    async def loop(self, ctx: commands.Context):
-        """Loops the currently playing song.
-        Invoke this command again to unloop the song"""
-
-        if not ctx.voice_state.is_playing:
-            return await ctx.send("Nic nie gra w tym momencie.")
-
-        ctx.voice_state.loop = not ctx.voice_state.loop
         await ctx.message.add_reaction("✅")
 
     @commands.command()
