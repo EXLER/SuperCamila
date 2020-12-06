@@ -303,7 +303,7 @@ class Music(commands.Cog):
 
         ctx.voice_state.voice = await destination.connect()
 
-    @commands.command()
+    @commands.command(aliases=["stop"])
     async def leave(self, ctx: commands.Context):
         """Clears the queue and makes the bot leave the voice channel"""
         if not ctx.voice_state.voice:
@@ -351,13 +351,6 @@ class Music(commands.Cog):
 
         await ctx.message.add_reaction("⏭️")
         ctx.voice_state.skip()
-
-    @commands.command()
-    async def stop(self, ctx: commands.Context):
-        """Stops the currently playing song and clears the queue"""
-
-        await ctx.message.add_reaction("⏹️")
-        await ctx.voice_state.stop()
 
     @commands.command()
     async def queue(self, ctx: commands.Context, *, page: int = 1):
@@ -431,13 +424,11 @@ class Music(commands.Cog):
     @play.before_invoke
     async def ensure_voice_state(self, ctx: commands.Context):
         if not ctx.author.voice or not ctx.author.voice.channel:
-            raise commands.CommandError(
-                "Nie jesteś połączony z żadnym kanałem głosowym!"
-            )
+            return await ctx.send("Nie jesteś połączony z żadnym kanałem głosowym!")
 
         if ctx.voice_client:
             if ctx.voice_client.channel != ctx.author.voice.channel:
-                raise commands.CommandError("Jestem już w innym kanale głosowym.")
+                return await ctx.send("Jestem już w innym kanale głosowym.")
 
 
 def setup(bot):
