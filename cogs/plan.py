@@ -37,8 +37,7 @@ class Plan(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def changeplan(self, ctx, group: str):
-        """Change the lesson plan for a given group with attached image.
-        choices: Informatyka, Automatyka"""
+        """Change the lesson plan for a given group with attached image"""
         async with ctx.typing():
             group = group.lower()
             print(ctx.guild.roles)

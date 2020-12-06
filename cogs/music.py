@@ -24,8 +24,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def join(self, ctx):
-        """Join the room occupied by the person invoking the command.
-        usage: !join"""
+        """Join the room occupied by the person invoking the command"""
         if ctx.author.voice:
             if (
                 not ctx.voice_client
