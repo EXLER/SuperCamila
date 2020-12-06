@@ -1,9 +1,7 @@
 import os
+import logging
 
-from discord.ext import commands
 import aiosqlite3
-
-from utils import log
 
 
 class DatabaseConnector:
@@ -12,16 +10,16 @@ class DatabaseConnector:
 
     async def load_db(self, db_name, loop):
         if not os.path.isfile(db_name):
-            log.info(f"Creating new database: {db_name}")
+            logging.info(f"Creating new database: {db_name}")
             with open("schema.sql", "r", encoding="utf-8") as f:
                 schema = f.read()
             self.db = await aiosqlite3.connect(db_name, loop=loop)
             await self.db.executescript(schema)
             await self.db.commit()
-            log.info(f"Database initialized: {db_name}")
+            logging.info(f"Database initialized: {db_name}")
         else:
             self.db = await aiosqlite3.connect(db_name, loop=loop)
-            log.info(f"Database loaded: {db_name}")
+            logging.info(f"Database loaded: {db_name}")
 
     async def __aenter__(self):
         self.db.__enter__()

@@ -1,10 +1,10 @@
 import os
-import urllib
+import logging
+from pathlib import Path
 
+import requests
 import discord
 from discord.ext import commands
-
-from utils import log, validators
 
 
 class Plan(commands.Cog):
@@ -23,55 +23,45 @@ class Plan(commands.Cog):
         file = None
         embed = discord.Embed()
         for role in ctx.message.author.roles:
-            if role.name == "Informatyka":
-                if os.path.isfile("data/plan/informatyka.png"):
-                    file = discord.File(
-                        "data/plan/informatyka.png", filename="informatyka.png"
-                    )
-                    embed.set_image(url="attachment://informatyka.png")
-                else:
-                    await ctx.send(
-                        "Brakuje planu dla grupy informatyka! Użyj komendy !changeplan aby dodać nowy plan."
-                    )
-                    return
-                break
-            elif role.name == "Automatyka":
-                if os.path.isfile("data/plan/automatyka.png"):
-                    file = discord.File(
-                        "data/plan/automatyka.png", filename="automatyka.png"
-                    )
-                    embed.set_image(url="attachment://automatyka.png")
-                else:
-                    await ctx.send(
-                        "Brakuje planu dla grupy automatyka! Użyj komendy !changeplan aby dodać nowy plan."
-                    )
-                    return
+            if os.path.isfile(f"data/plan/{role}.png"):
+                file = discord.File(f"data/plan/{role}.png", filename=f"{role}.png")
+                embed.set_image(url=f"attachment://{role}.png")
                 break
 
-        if file == None:
-            await ctx.send(
-                "Potrzebujesz posiadać przypisaną rolę: Informatyk, Automatyk"
-            )
+        if not file:
+            await ctx.send("Żadna z twoich grup nie posiada przypisanego planu!")
             return
 
         await ctx.send(file=file, embed=embed)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
-    async def changeplan(self, ctx, group: str, link: str):
-        """Change the lesson plan for a given group.
-           choices: Informatyka, Automatyka"""
-        group = group.lower()
-        if group != "informatyka" and group != "automatyka":
-            await ctx.send("Wybierz jedną z możliwości: informatyka, automatyka")
-            return
+    async def changeplan(self, ctx, group: str):
+        """Change the lesson plan for a given group with attached image.
+        choices: Informatyka, Automatyka"""
+        async with ctx.typing():
+            group = group.lower()
+            print(ctx.guild.roles)
+            if group not in [str(role).lower() for role in ctx.guild.roles]:
+                await ctx.send("Wybrana grupa nie istnieje na serwerze!")
+                return
 
-        if not validators.url_validator(link):
-            await ctx.send("Podana wartość nie jest linkiem!")
-            return
+            if not ctx.message.attachments:
+                await ctx.send("Wiadomość nie zawiera załączonego planu!")
+                return
 
-        urllib.request.urlretrieve(link, f"data/plan/{group}.png")
-        await ctx.send("Nowy plan ustawiony!")
+            plan_image = ctx.message.attachments[0]
+            if plan_image.url.endswith((".png", ".gif", ".jpg", ".jpeg")):
+                img_data = requests.get(plan_image.url).content
+
+                with open(Path("data", "plan", f"{group}.png"), "wb") as handler:
+                    handler.write(img_data)
+                    logging.info(f"Downloaded {plan_image.url} as {group} plan")
+            else:
+                await ctx.send("Załącznik nie jest zdjęciem!")
+                return
+
+            await ctx.send("Nowy plan ustawiony!")
 
 
 def setup(bot):

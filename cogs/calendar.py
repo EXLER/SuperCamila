@@ -1,8 +1,10 @@
+import logging
+
+import aiosqlite3
 import discord
 from discord.ext import commands
-import aiosqlite3
 
-from utils import log, validators
+from utils import validators
 
 
 class Calendar(commands.Cog):
@@ -35,7 +37,7 @@ class Calendar(commands.Cog):
                     f"📅 Scheduled event `{title}` for group `{group}` on `{date}`"
                 )
             except aiosqlite3.IntegrityError as e:
-                log.error(f"Database error on `schedule` command: {e}")
+                logging.error(f"Database error on `schedule` command: {e}")
                 await ctx.send(
                     "Database error occured while using the `schedule` command."
                 )
@@ -43,7 +45,7 @@ class Calendar(commands.Cog):
     @commands.command()
     async def deleteevent(self, ctx, title):
         """Delete an existing event.
-           Can only be called by server admin or the event creator"""
+        Can only be called by server admin or the event creator"""
         async with self.bot.db_holder.db.cursor() as cur:
             try:
                 await cur.execute(
@@ -66,7 +68,7 @@ class Calendar(commands.Cog):
                         "Only the event creator or the administrator can delete events."
                     )
             except aiosqlite3.IntegrityError as e:
-                log.error(f"Database error on `deleteevent` command: {e}")
+                logging.error(f"Database error on `deleteevent` command: {e}")
                 await ctx.send(
                     "Database error occured while using the `deleteevent` command."
                 )
@@ -88,7 +90,7 @@ class Calendar(commands.Cog):
 
                 await ctx.send(msg)
             except aiosqlite3.IntegrityError as e:
-                log.error(f"Database error on `schedule` command: {e}")
+                logging.error(f"Database error on `schedule` command: {e}")
                 await ctx.send(
                     "Database error occured while using the `schedule` command."
                 )
@@ -112,7 +114,7 @@ class Calendar(commands.Cog):
 
                 await ctx.send(msg)
             except aiosqlite3.IntegrityError as e:
-                log.error(f"Database error on `schedule` command: {e}")
+                logging.error(f"Database error on `schedule` command: {e}")
                 await ctx.send(
                     "Database error occured while using the `schedule` command."
                 )
@@ -136,7 +138,7 @@ class Calendar(commands.Cog):
 
                 await ctx.send(msg)
             except aiosqlite3.IntegrityError as e:
-                log.error(f"Database error on `schedule` command: {e}")
+                logging.error(f"Database error on `schedule` command: {e}")
                 await ctx.send(
                     "Database error occured while using the `schedule` command."
                 )

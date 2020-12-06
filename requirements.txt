@@ -3,3 +3,4 @@ aiosqlite3
 youtube-dlc
 pynacl
 python-dotenv
+requests

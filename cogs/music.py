@@ -3,7 +3,7 @@ import os
 import discord
 from discord.ext import commands
 
-from utils import log, web
+from utils import web
 
 
 class Music(commands.Cog):
@@ -25,7 +25,7 @@ class Music(commands.Cog):
     @commands.command()
     async def join(self, ctx):
         """Join the room occupied by the person invoking the command.
-           usage: !join"""
+        usage: !join"""
         if ctx.author.voice:
             if (
                 not ctx.voice_client

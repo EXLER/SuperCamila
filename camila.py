@@ -3,7 +3,7 @@
 import os
 import sys
 import random
-from datetime import datetime
+import logging
 from subprocess import check_output, CalledProcessError
 from traceback import format_exc
 
@@ -16,7 +16,15 @@ except ImportError:
     )
     exit(0)
 
-from utils import log, database, constants
+from utils import database, constants
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s: %(message)s",
+    datefmt="%H:%M:%S",
+    handlers=[logging.StreamHandler()],
+)
+logging.getLogger("discord").setLevel(logging.WARNING)
 
 try:
     from dotenv import load_dotenv
@@ -48,20 +56,21 @@ class Camila(commands.Bot):
 
     def add_cog(self, cog):
         super().add_cog(cog)
-        log.info(f"Cog loaded: {cog.qualified_name}")
+        logging.info(f"Cog loaded: {cog.qualified_name}")
 
     def load_cogs(self):
         for extension in cogs:
             try:
                 self.load_extension(extension)
             except BaseException as e:
-                log.warn(f"{extension} failed to load.")
+                logging.warning(f"{extension} failed to load.")
                 self.failed_cogs.append([extension, type(e).__name__, e])
 
     async def on_ready(self):
         self.db_holder = database.DatabaseConnector()
         await self.db_holder.load_db(
-            constants.DB_PATH, self.loop,
+            constants.DB_PATH,
+            self.loop,
         )
 
         await self.change_presence(
@@ -75,7 +84,7 @@ class Camila(commands.Bot):
             startup_message += "\n\nAddons failed to load:\n"
             for fail in self.failed_cogs:
                 startup_message += "\n{}: `{}: {}`".format(*fail)
-        log.info(startup_message)
+        logging.info(startup_message)
 
     async def on_command_error(
         self, ctx: commands.Context, exc: commands.CommandInvokeError
@@ -120,14 +129,14 @@ class Camila(commands.Bot):
             await ctx.send(
                 f"{author.mention} Unexpected exception occurred while using the `{command}` command."
             )
-            log.warn(
+            logging.warning(
                 f"Unexpected exception occured while using the `{command}` command: {exc}"
             )
 
     async def on_error(self, event_method, *args, **kwargs):
-        log.error(f"Error in event: {event_method}\n")
+        logging.error(f"Error in event: {event_method}\n")
         msg = format_exc()
-        log.error(f"Error message:\n{msg}")
+        logging.error(f"Error message:\n{msg}")
 
 
 def run_bot() -> int:
@@ -151,12 +160,12 @@ def run_bot() -> int:
         description="Camila, an extensible Discord bot with handful of functionalities for every student!",
     )
     bot.help_command = commands.DefaultHelpCommand(dm_help=False)
-    log.info(f"Starting Camila on commit {commit} on branch {branch}")
+    logging.info(f"Starting Camila on commit {commit} on branch {branch}")
     bot.load_cogs()
     try:
         bot.run(os.getenv("DISCORD_BOT_TOKEN"))
     except KeyboardInterrupt:
-        log.warn(f"Received keyboard interrupt. Stopping...")
+        logging.warning(f"Received keyboard interrupt. Stopping...")
 
     return bot.exitcode
 

@@ -1,14 +1,15 @@
 import os
 import uuid
+import logging
 
 import youtube_dlc
 
-from utils import log, validators
+from utils import validators
 
 
 def youtube_download(query) -> dict:
     """Downloads a given URL from YouTube using youtube-dl.
-       Returns dict if success, otherwise None"""
+    Returns dict if success, otherwise None"""
     filename = str(uuid.uuid4())
 
     ytdl_opts = {
@@ -27,14 +28,14 @@ def youtube_download(query) -> dict:
     }
 
     with youtube_dlc.YoutubeDL(ytdl_opts) as ytdl:
-        log.debug(f"Trying to download using query: {query}")
+        logging.info(f"Trying to download using query: {query}")
         if validators.url_validator(query):
             result = ytdl.extract_info(query)
         else:
             result = ytdl.extract_info(f"ytsearch:{query}")["entries"][0]
         title = result.get("title", None)
         duration = result.get("duration", None)
-        log.debug(f"Found and downloaded: {title}")
+        logging.info(f"Found and downloaded: {title}")
 
     if not title:
         return None

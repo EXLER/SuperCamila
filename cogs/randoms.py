@@ -1,10 +1,7 @@
-import os
 import random
 
 import discord
 from discord.ext import commands
-
-from utils import log
 
 
 class Randoms(commands.Cog):
