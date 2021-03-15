@@ -70,14 +70,10 @@ class YTDLSource(discord.PCMVolumeTransformer):
         return f"**{self.title}** by **{self.uploader}**"
 
     @classmethod
-    async def create_source(
-        cls, ctx: commands.Context, search: str, *, loop: asyncio.BaseEventLoop = None
-    ):
+    async def create_source(cls, ctx: commands.Context, search: str, *, loop: asyncio.BaseEventLoop = None):
         loop = loop or asyncio.get_event_loop()
 
-        partial = functools.partial(
-            cls.ytdl.extract_info, search, download=False, process=False
-        )
+        partial = functools.partial(cls.ytdl.extract_info, search, download=False, process=False)
         data = await loop.run_in_executor(None, partial)
 
         if data is None:
@@ -110,13 +106,9 @@ class YTDLSource(discord.PCMVolumeTransformer):
                 try:
                     info = processed_info["entries"].pop(0)
                 except IndexError:
-                    raise YTDLError(
-                        f"Nie udało się pobrać żadnych plików dla `{webpage_url}`"
-                    )
+                    raise YTDLError(f"Nie udało się pobrać żadnych plików dla `{webpage_url}`")
 
-        return cls(
-            ctx, discord.FFmpegPCMAudio(info["url"], **cls.FFMPEG_OPTIONS), data=info
-        )
+        return cls(ctx, discord.FFmpegPCMAudio(info["url"], **cls.FFMPEG_OPTIONS), data=info)
 
     @staticmethod
     def parse_duration(duration: int):
@@ -248,6 +240,7 @@ class VoiceState:
         if self.voice:
             await self.voice.disconnect()
             self.voice = None
+            self.current = None
 
 
 class Music(commands.Cog):
@@ -261,6 +254,7 @@ class Music(commands.Cog):
 
     def get_voice_state(self, ctx: commands.Context):
         state = self.voice_states.get(ctx.guild.id)
+
         if not state:
             state = VoiceState(self.bot, ctx)
             self.voice_states[ctx.guild.id] = state
@@ -273,9 +267,7 @@ class Music(commands.Cog):
 
     def cog_check(self, ctx: commands.Context):
         if not ctx.guild:
-            raise commands.NoPrivateMessage(
-                "This command can't be used in DM channels."
-            )
+            raise commands.NoPrivateMessage("This command can't be used in DM channels.")
 
         return True
 
@@ -363,9 +355,9 @@ class Music(commands.Cog):
         for i, song in enumerate(ctx.voice_state.songs[start:end], start=start):
             queue += f"`{i + 1}.` [**{song.source.title}**]({song.source.url})\n"
 
-        embed = discord.Embed(
-            description=f"**{len(ctx.voice_state.songs)} tracks:**\n\n{queue}"
-        ).set_footer(text=f"Viewing page {page}/{pages}")
+        embed = discord.Embed(description=f"**{len(ctx.voice_state.songs)} tracks:**\n\n{queue}").set_footer(
+            text=f"Viewing page {page}/{pages}"
+        )
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -393,9 +385,7 @@ class Music(commands.Cog):
             try:
                 source = await YTDLSource.create_source(ctx, search, loop=self.bot.loop)
             except YTDLError as e:
-                await ctx.send(
-                    "An error occurred while processing this request: {}".format(str(e))
-                )
+                await ctx.send("An error occurred while processing this request: {}".format(str(e)))
             else:
                 song = Song(source)
 
