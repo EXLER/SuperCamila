@@ -317,7 +317,10 @@ class Music(commands.Cog):
     @commands.command(aliases=["current", "playing"])
     async def now(self, ctx: commands.Context):
         """Displays the currently playing song"""
-        await ctx.send(embed=ctx.voice_state.current.create_embed())
+        if ctx.voice_state.current:
+            await ctx.send(embed=ctx.voice_state.current.create_embed())
+        else:
+            await ctx.send("Aktualnie nic nie gra.")
 
     @commands.command()
     async def pause(self, ctx: commands.Context):
